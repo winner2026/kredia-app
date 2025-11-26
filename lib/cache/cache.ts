@@ -1,10 +1,13 @@
 import { Redis } from "@upstash/redis";
 import { logger } from "@/lib/logging/logger";
-import { registerHit, registerMiss } from "./metrics";
+import { registerHit, registerMiss } from "@/lib/cache/metrics";
 
 const redisUrl = process.env.UPSTASH_REDIS_URL;
 const redisToken = process.env.UPSTASH_REDIS_TOKEN;
-const redis = redisUrl && redisToken ? new Redis({ url: redisUrl, token: redisToken }) : null;
+const redis =
+  redisUrl && redisToken
+    ? new Redis({ url: redisUrl, token: redisToken })
+    : null;
 
 type MemoryEntry<T> = {
   value: T;
@@ -21,7 +24,7 @@ export async function redisCache<T>(
   key: string,
   fn: () => Promise<T>,
   ttlSeconds: number,
-  ctx: CacheContext = {},
+  ctx: CacheContext = {}
 ): Promise<T> {
   if (redis) {
     const cached = await redis.get<T>(key);
