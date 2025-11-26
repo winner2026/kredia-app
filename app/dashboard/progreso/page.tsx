@@ -1,10 +1,13 @@
 import { redirect } from "next/navigation";
-import { assessRisk } from "@/lib/domain/risk";
+import { calculateRisk } from "@/lib/domain/risk";
 
 async function loadOverview() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/dashboard/overview`, {
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/dashboard/overview`,
+    {
+      cache: "no-store",
+    }
+  );
   if (res.status === 401) redirect("/login");
   if (!res.ok) return null;
   return res.json();
@@ -12,7 +15,9 @@ async function loadOverview() {
 
 export default async function ProgresoPage() {
   const data = await loadOverview();
-  const freedomDate = data?.freedomDate ? new Date(data.freedomDate).toLocaleDateString("es-ES") : null;
+  const freedomDate = data?.freedomDate
+    ? new Date(data.freedomDate).toLocaleDateString("es-ES")
+    : null;
   const utilization = data?.utilization ?? 0;
   const risk = assessRisk(utilization);
 
@@ -25,13 +30,15 @@ export default async function ProgresoPage() {
       </p>
       <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-200 space-y-2">
         <p>
-          <span className="font-semibold">Utilización actual:</span> {utilization}%
+          <span className="font-semibold">Utilización actual:</span>{" "}
+          {utilization}%
         </p>
         <p>
           <span className="font-semibold">Riesgo estimado:</span> {risk}
         </p>
         <p>
-          <span className="font-semibold">Fecha estimada de libertad:</span> {freedomDate ?? "—"}
+          <span className="font-semibold">Fecha estimada de libertad:</span>{" "}
+          {freedomDate ?? "—"}
         </p>
       </div>
     </div>
