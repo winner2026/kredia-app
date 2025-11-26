@@ -1,25 +1,42 @@
 {
-  "name": "poderia-app",
+  "name": "kredia-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "@react-spring/web": "^10.0.3",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.4.0",
+    "autocannon": "^8.0.0",
+    "dotenv": "^17.2.3",
+    "framer-motion": "^12.23.24",
+    "gsap": "^3.13.0",
+    "lucide-react": "^0.554.0",
     "next": "16.0.3",
+    "next-auth": "^5.0.0-beta.21",
+    "node-fetch": "^3.3.2",
+    "pixi.js": "^8.14.3",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "three": "^0.181.2",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@auth/prisma-adapter": "^1.6.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
+    "prisma": "^6.19.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

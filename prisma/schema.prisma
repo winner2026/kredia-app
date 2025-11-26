@@ -1,0 +1,82 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Usuario
+model User {
+  id          String       @id @default(uuid())
+  email       String       @unique
+  name        String?
+  createdAt   DateTime     @default(now())
+  role        Role         @default(USER)
+
+  cards       CreditCard[]
+  purchases   Purchase[]
+  riskHistory RiskSnapshot[]
+}
+
+// 2. Tarjeta de crédito
+model CreditCard {
+  id              String      @id @default(uuid())
+  userId          String
+  bank            String       // Santander, BBVA, OCA, etc.
+  limit           Int          // límite total
+  closingDay      Int          // día de cierre (15, 20, etc.)
+  dueDay          Int          // día de vencimiento (25, 28, etc.)
+  createdAt       DateTime     @default(now())
+
+  user            User         @relation(fields: [userId], references: [id])
+  purchases       Purchase[]
+}
+
+// 3. Compra
+model Purchase {
+  id             String       @id @default(uuid())
+  userId         String
+  cardId         String
+  description    String
+  amountTotal    Int          // total de la compra (sumatoria de cuotas)
+  amountPerMonth Int          // valor mensual
+  installments   Int          // número total de cuotas
+  remaining      Int          // cuotas restantes
+  purchaseDate   DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+
+  user           User         @relation(fields: [userId], references: [id])
+  card           CreditCard   @relation(fields: [cardId], references: [id])
+}
+
+// 4. Snapshot de riesgo mensual
+model RiskSnapshot {
+  id             String     @id @default(uuid())
+  userId         String
+  month          Int
+  year           Int
+  utilization    Float      // porcentaje usado del límite
+  createdAt      DateTime   @default(now())
+
+  user           User       @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  route     String
+  ip        String?
+  requestId String?
+  metadata  Json
+  integrityHash String
+  createdAt DateTime @default(now())
+}
