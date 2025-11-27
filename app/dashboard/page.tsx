@@ -1,20 +1,33 @@
 import { redirect } from "next/navigation";
 import DashboardView from "@/components/dashboard/DashboardView";
 
-async function fetchOverview() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/dashboard/overview`, {
-    cache: "no-store",
-  });
+export const runtime = "nodejs";
 
-  if (res.status === 401) {
+async function fetchOverview() {
+  try {
+    if (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET) {
+      redirect("/login");
+    }
+    if (!process.env.DATABASE_URL) {
+      redirect("/login");
+    }
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/dashboard/overview`, {
+      cache: "no-store",
+    });
+
+    if (res.status === 401) {
+      redirect("/login");
+    }
+
+    if (!res.ok) {
+      return null;
+    }
+
+    return res.json();
+  } catch {
+    // Ante cualquier fallo de red/entorno, forzamos login para evitar excepción en SSR.
     redirect("/login");
   }
-
-  if (!res.ok) {
-    return null;
-  }
-
-  return res.json();
 }
 
 export default async function DashboardPage() {

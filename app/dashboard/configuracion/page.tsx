@@ -3,6 +3,8 @@ export const runtime = "nodejs";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 
+export const runtime = "nodejs";
+
 export default async function ConfiguracionPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
