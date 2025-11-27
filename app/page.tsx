@@ -16,6 +16,7 @@ export default function HomePage() {
         <div className="absolute right-0 top-32 h-72 w-72 rounded-full bg-emerald-400/15 blur-[140px]" />
         <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-400/10 blur-[160px]" />
       </div>
+
       <div className="relative">
         <Header />
         <Hero />
