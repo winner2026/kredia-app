@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/server/prisma";
 import { ensureRateLimit } from "@/lib/security/rateLimit";
 import { PurchaseCreateSchema } from "@/lib/validators/purchase";
 import { logger } from "@/lib/logging/logger";
 import { invalidateCard, invalidateProjections } from "@/lib/cache/invalidation";
 import { getRequestId } from "@/lib/observability/request";
 import { profileApi } from "@/lib/perf/apiProfiler";
+
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const requestId = getRequestId(req);

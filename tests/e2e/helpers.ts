@@ -12,7 +12,19 @@ export async function login(page: Page, email: string, name = "Playwright User")
 }
 
 export async function expectHasRequestId(response: APIResponse | Response) {
-  const header = await response.headerValue("x-request-id");
+  let header: string | null | undefined;
+  if ("headerValue" in (response as any)) {
+    const apiResp = response as any;
+    header = await apiResp.headerValue?.("x-request-id");
+  } else if ("headers" in (response as any)) {
+    const headersObj = (response as any).headers;
+    if (typeof headersObj === "function") {
+      const h = headersObj();
+      header = h?.["x-request-id"];
+    } else if (headersObj && typeof headersObj.get === "function") {
+      header = headersObj.get("x-request-id");
+    }
+  }
   expect(header).toBeDefined();
   expect(String(header || "")).not.toHaveLength(0);
 }

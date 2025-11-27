@@ -1,5 +1,6 @@
 import crypto from "crypto";
-import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/server/prisma";
 import { logger } from "@/lib/logging/logger";
 import { captureException } from "@/lib/observability/sentry.server";
 
@@ -41,7 +42,7 @@ export async function createAuditLog(params: AuditParams) {
         route: params.route,
         ip: params.ip ?? null,
         requestId: params.req.headers.get("x-request-id"),
-        metadata: params.metadata ?? {},
+        metadata: (params.metadata ?? {}) as Prisma.InputJsonValue,
         integrityHash,
         createdAt,
       },

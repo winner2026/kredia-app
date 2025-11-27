@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { getRequestId } from "@/lib/observability/request";
 import { profileApi } from "@/lib/perf/apiProfiler";
 
+export const runtime = "nodejs";
+
 export async function GET(req: Request, ctx: unknown) {
   const requestId = getRequestId(req);
   return profileApi("auth.GET", requestId, async () => {

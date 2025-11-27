@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/server/prisma";
 import { logger } from "@/lib/logging/logger";
 import { getRequestId } from "@/lib/observability/request";
 import { profileApi } from "@/lib/perf/apiProfiler";
+
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const requestId = getRequestId(req);

@@ -20,9 +20,9 @@ export async function cacheRSC<T>(key: string, fn: () => Promise<T>, ttlMs = 5 *
 
 export function deferClient<T extends (...args: any[]) => Promise<any>>(fn: T) {
   let promise: ReturnType<T> | null = null;
-  return (...args: Parameters<T>) => {
+  return (...args: Parameters<T>): ReturnType<T> => {
     if (!promise) {
-      promise = fn(...args);
+      promise = fn(...args) as ReturnType<T>;
     }
     return promise;
   };

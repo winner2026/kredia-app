@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
 import { buildCsp } from "@/lib/security/csp";
 import { getRequestId } from "@/lib/observability/request";
 
@@ -7,11 +6,10 @@ const mutatingMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const protectedPaths = ["/dashboard"];
 const bypassPaths: string[] = ["/api/webhooks"];
 
-function shouldBypass(pathname: string) {
-  return bypassPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-}
+const shouldBypass = (pathname: string) =>
+  bypassPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-function applySecurityHeaders(response: NextResponse, requestId: string) {
+const applySecurityHeaders = (response: NextResponse, requestId: string) => {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -20,9 +18,9 @@ function applySecurityHeaders(response: NextResponse, requestId: string) {
   response.headers.set("Content-Security-Policy", buildCsp());
   response.headers.set("X-Request-ID", requestId);
   response.headers.set("x-sentry-trace", requestId);
-}
+};
 
-export async function middleware(req: NextRequest) {
+const handler = (req: NextRequest) => {
   const requestId = getRequestId(req);
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-request-id", requestId);
@@ -32,9 +30,12 @@ export async function middleware(req: NextRequest) {
   const isProtected = protectedPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
   const isMutating = mutatingMethods.has(req.method) && pathname.startsWith("/api/") && !shouldBypass(pathname);
 
-  const session = await auth();
+  const hasSession = Boolean(
+    req.cookies.get("__Secure-next-auth.session-token") ??
+    req.cookies.get("next-auth.session-token")
+  );
 
-  if (isProtected && !session) {
+  if (isProtected && !hasSession) {
     const signInUrl = new URL("/login", req.nextUrl.origin);
     signInUrl.searchParams.set("from", req.nextUrl.pathname);
     const redirectRes = NextResponse.redirect(signInUrl);
@@ -42,13 +43,12 @@ export async function middleware(req: NextRequest) {
     return redirectRes;
   }
 
-  if (isMutating && !session) {
+  if (isMutating && !hasSession) {
     const res = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     applySecurityHeaders(res, requestId);
     return res;
   }
 
-  // detección básica de abuso: UA sospechoso / paths de escaneo
   const ua = req.headers.get("user-agent") || "";
   if (ua.toLowerCase().includes("sqlmap") || ua.toLowerCase().includes("nikto")) {
     const res = NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -63,7 +63,9 @@ export async function middleware(req: NextRequest) {
   });
   applySecurityHeaders(response, requestId);
   return response;
-}
+};
+
+export default handler;
 
 export const config = {
   matcher: [

@@ -1,13 +1,44 @@
 // DashboardView.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CreditLinearGauge from "./CreditLinearGauge";
 import {
   construirSchedule,
   obtenerFechaLibertad,
   proyectarMeses,
+  type InstallmentSchedule,
 } from "@/lib/paymentSchedule";
+
+const HEIGHT_CLASSES = [
+  "h-[0%]",
+  "h-[5%]",
+  "h-[10%]",
+  "h-[15%]",
+  "h-[20%]",
+  "h-[25%]",
+  "h-[30%]",
+  "h-[35%]",
+  "h-[40%]",
+  "h-[45%]",
+  "h-[50%]",
+  "h-[55%]",
+  "h-[60%]",
+  "h-[65%]",
+  "h-[70%]",
+  "h-[75%]",
+  "h-[80%]",
+  "h-[85%]",
+  "h-[90%]",
+  "h-[95%]",
+  "h-[100%]",
+];
+
+function getHeightClass(value: number) {
+  const clamped = Math.max(0, Math.min(100, Math.round(value)));
+  const idx = Math.round(clamped / 5);
+  return HEIGHT_CLASSES[idx] ?? "h-[0%]";
+}
 
 type FormData = {
   nombreTarjeta: string;
@@ -124,7 +155,6 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
       !cantidadCuotas ||
       !closingValid ||
       !dueValid
-    )
     ) {
       setSubmitting(false);
       return;
@@ -254,55 +284,73 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
     return Math.min(100, Math.round((totalCompras / limiteMaximo) * 100));
   }, [totalCompras, limiteMaximo]);
 
-  const monthlyTotals = useMemo(() => {
-    if (!hasCalendar) {
-      const now = new Date();
-      return Array.from({ length: 12 }).map((_, idx) => {
-        const d = new Date(now);
-        d.setMonth(d.getMonth() + idx);
-        const label = d.toLocaleDateString("es-ES", { month: "short" });
-        return { label, total: 0, dueDates: [] as Date[] };
-      });
-    }
+  const [monthlyTotals, setMonthlyTotals] = useState<{ label: string; total: number; dueDates: Date[] }[]>([]);
+  const [freedomDate, setFreedomDate] = useState<Date | null>(null);
+  const [scheduleMap, setScheduleMap] = useState<Record<string, InstallmentSchedule[]>>({});
 
-    const inputs = purchases.map((p) => ({
-      purchaseDate: toLocalDate(p.fechaCompra),
-      installments: p.cantidadCuotas,
-      paidInstallments: p.cuotasPagadas,
-      amountPerMonth: p.montoCuota,
-    }));
+  useEffect(() => {
+    const recompute = async () => {
+      if (!hasCalendar) {
+        const now = new Date();
+        const fallback = Array.from({ length: 12 }).map((_, idx) => {
+          const d = new Date(now);
+          d.setMonth(d.getMonth() + idx);
+          const label = d.toLocaleDateString("es-ES", { month: "short" });
+          return { label, total: 0, dueDates: [] as Date[] };
+        });
+        setMonthlyTotals(fallback);
+        setFreedomDate(null);
+        setScheduleMap({});
+        return;
+      }
 
-    return proyectarMeses(inputs, { closingDay, dueDay });
+      const inputs = purchases.map((p) => ({
+        purchaseDate: toLocalDate(p.fechaCompra),
+        installments: p.cantidadCuotas,
+        paidInstallments: p.cuotasPagadas,
+        amountPerMonth: p.montoCuota,
+      }));
+
+      const [projection, freedom] = await Promise.all([
+        proyectarMeses(inputs, { closingDay, dueDay }),
+        obtenerFechaLibertad(inputs, { closingDay, dueDay }),
+      ]);
+
+      setMonthlyTotals(projection);
+      setFreedomDate(freedom ?? null);
+
+      const schedules = await Promise.all(
+        purchases.map(async (p) => {
+          const sched = await construirSchedule(
+            {
+              purchaseDate: toLocalDate(p.fechaCompra),
+              installments: p.cantidadCuotas,
+              paidInstallments: p.cuotasPagadas,
+              amountPerMonth: p.montoCuota,
+            },
+            { closingDay, dueDay },
+            Number.POSITIVE_INFINITY,
+          );
+          return [p.id, sched] as const;
+        }),
+      );
+      setScheduleMap(Object.fromEntries(schedules));
+    };
+
+    void recompute();
   }, [hasCalendar, purchases, closingDay, dueDay]);
 
   const maxTotal = monthlyTotals.reduce((max, m) => Math.max(max, m.total), 0);
   const displayMaxTotal = maxTotal || 0;
 
   const freedomDateLabel = useMemo(() => {
-    if (!hasCalendar || purchases.length === 0) return "Ya estás a $0";
-    const inputs = purchases.map((p) => ({
-      purchaseDate: toLocalDate(p.fechaCompra),
-      installments: p.cantidadCuotas,
-      paidInstallments: p.cuotasPagadas,
-      amountPerMonth: p.montoCuota,
-    }));
-    const freedomDate = obtenerFechaLibertad(inputs, { closingDay, dueDay });
-    if (!freedomDate) return "Ya estás a $0";
+    if (!hasCalendar || purchases.length === 0 || !freedomDate) return "Ya estás a $0";
     return freedomDate.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
-  }, [hasCalendar, purchases, closingDay, dueDay]);
+  }, [hasCalendar, purchases.length, freedomDate]);
 
   const getEndDateLabel = (purchase: Purchase) => {
     if (!hasCalendar) return "-";
-    const schedule = construirSchedule(
-      {
-        purchaseDate: toLocalDate(purchase.fechaCompra),
-        installments: purchase.cantidadCuotas,
-        paidInstallments: purchase.cuotasPagadas,
-        amountPerMonth: purchase.montoCuota,
-      },
-      { closingDay, dueDay },
-      Number.POSITIVE_INFINITY,
-    );
+    const schedule = scheduleMap[purchase.id] ?? [];
     const last = schedule[schedule.length - 1];
     if (!last) return "-";
     return last.dueDate.toLocaleDateString("es-ES", { month: "short", year: "numeric" });
@@ -316,19 +364,7 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
   }, [monthlyTotals]);
 
   const latestPurchase = purchases[purchases.length - 1];
-  const latestSchedule =
-    latestPurchase && hasCalendar
-      ? construirSchedule(
-          {
-            purchaseDate: toLocalDate(latestPurchase.fechaCompra),
-            installments: latestPurchase.cantidadCuotas,
-            paidInstallments: latestPurchase.cuotasPagadas,
-            amountPerMonth: latestPurchase.montoCuota,
-          },
-          { closingDay, dueDay },
-          Number.POSITIVE_INFINITY,
-        )
-      : [];
+  const latestSchedule = latestPurchase ? scheduleMap[latestPurchase.id] ?? [] : [];
 
   const ultimaCuotaFecha =
     latestSchedule.length > 0
@@ -398,12 +434,12 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
               <h3 className="text-2xl font-semibold text-yellow-300 underline underline-offset-4">Proyección a 12 meses</h3>
               <div className="absolute right-0 top-1/2 -translate-y-1/2 rounded-md border border-white/10 bg-white/5 px-4 py-2 text-right">
                 <p className="text-sm font-semibold">
-                  Quedas <span style={{ color: "#e11d48" }}>SIN DEUDAS</span> en:
+                  Quedas <span className="text-rose-500">SIN DEUDAS</span> en:
                 </p>
                 <p className="text-[#2ECC71] font-semibold">{freedomDateLabel}</p>
               </div>
             </div>
-            <div className="relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/60 via-slate-950 to-slate-900/60 p-4 shadow-inner shadow-black/30">
+            <div className="relative overflow-hidden rounded-xl border border-white/10 bg-linear-to-br from-slate-900/60 via-slate-950 to-slate-900/60 p-4 shadow-inner shadow-black/30">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(232,121,249,0.06),transparent_35%)]" />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_40%,rgba(14,165,233,0.05),transparent_35%)]" />
               <div className="relative">
@@ -415,6 +451,7 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
                 <div className="grid grid-cols-12 items-end gap-2 sm:gap-3">
                   {monthlyTotals.map((m, idx) => {
                     const heightPercent = displayMaxTotal > 0 ? Math.min(100, (m.total / displayMaxTotal) * 100) : 0;
+                    const heightClass = getHeightClass(heightPercent);
                     const fallbackDue = hasCalendar
                       ? (() => {
                           const base = new Date();
@@ -439,8 +476,7 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
                           aria-label={`Pago en ${m.label}: $${m.total}`}
                         >
                           <div
-                            className="w-full rounded-b-lg bg-gradient-to-t from-[#db2777] via-[#ec4899] to-[#f9a8d4] transition-all duration-300 ease-out"
-                            style={{ height: `${heightPercent}%` }}
+                            className={`w-full rounded-b-lg bg-linear-to-t from-[#db2777] via-[#ec4899] to-[#f9a8d4] transition-all duration-300 ease-out ${heightClass}`}
                           />
                           <span
                             className={`pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full px-2 py-1 text-[11px] font-semibold shadow ${
@@ -467,7 +503,7 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
         )}
 
         {purchases.length > 0 && (
-          <section className="rounded-lg border border-white/10 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-6 shadow-lg space-y-4">
+          <section className="rounded-lg border border-white/10 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 p-6 shadow-lg space-y-4">
             <h3 className="text-xl font-semibold text-[#27C1D0]">Insights inteligentes</h3>
             <div className="grid gap-3 md:grid-cols-3">
               <div className="rounded-xl border border-cyan-500/20 bg-white/5 p-4 text-sm text-slate-200 shadow">
@@ -640,20 +676,25 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-slate-300">Fecha de compra</label>
+                <label className="text-sm text-slate-300" htmlFor="fecha-compra">
+                  Fecha de compra
+                </label>
                 <input
+                  id="fecha-compra"
                   className={inputClass}
                   type="date"
                   value={form.fechaCompra}
                   onChange={(e) => handleChange("fechaCompra", e.target.value)}
                   max="2100-12-31"
+                  placeholder="YYYY-MM-DD"
+                  aria-label="Fecha de compra"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full rounded-md bg-gradient-to-r from-cyan-400 via-[#F8B738] to-[#E13787] px-4 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:brightness-110 disabled:opacity-70"
+              className="w-full rounded-md bg-linear-to-r from-cyan-400 via-[#F8B738] to-[#E13787] px-4 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:brightness-110 disabled:opacity-70"
               disabled={submitting}
             >
               {editingId ? "Guardar cambios" : "Registrar compra"}
@@ -684,18 +725,7 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
             </div>
             <div className="space-y-3">
               {purchases.map((p) => {
-                const schedule = hasCalendar
-                  ? construirSchedule(
-                      {
-                        purchaseDate: toLocalDate(p.fechaCompra),
-                        installments: p.cantidadCuotas,
-                        paidInstallments: p.cuotasPagadas,
-                        amountPerMonth: p.montoCuota,
-                      },
-                      { closingDay, dueDay },
-                      Number.POSITIVE_INFINITY,
-                    )
-                  : [];
+                const schedule = scheduleMap[p.id] ?? [];
                 const firstPending = schedule.find((s) => s.monthIndex >= 0);
                 const lastSchedule = schedule[schedule.length - 1];
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/server/prisma";
 import {
   calcularFechaVencimiento,
   calcularMesSegunCierre,
@@ -14,6 +14,8 @@ import { z } from "zod";
 import { withTrace } from "@/lib/observability/trace";
 import { getRequestId } from "@/lib/observability/request";
 import { profileApi } from "@/lib/perf/apiProfiler";
+
+export const runtime = "nodejs";
 
 type Body = {
   cardId?: string;

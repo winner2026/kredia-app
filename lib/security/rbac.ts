@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { type Role } from "@prisma/client";
 import { type AuthUser } from "@/lib/auth";
 
 export type CurrentUser = AuthUser & { role?: Role };
@@ -9,9 +9,9 @@ export function requireUser(user: CurrentUser | null): asserts user is CurrentUs
   }
 }
 
-export function requireAdmin(user: CurrentUser | null): asserts user is CurrentUser & { role: Role.ADMIN } {
+export function requireAdmin(user: CurrentUser | null): asserts user is CurrentUser & { role: Role } {
   requireUser(user);
-  if (user.role !== Role.ADMIN) {
+  if (user.role !== "ADMIN") {
     throw new Error("Forbidden");
   }
 }

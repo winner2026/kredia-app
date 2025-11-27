@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/server/prisma";
 import { proyectarMeses } from "@/lib/paymentSchedule";
 import { ensureRateLimit } from "@/lib/security/rateLimit";
 import { logger } from "@/lib/logging/logger";
 import { getRequestId } from "@/lib/observability/request";
 import { profileApi } from "@/lib/perf/apiProfiler";
+
+export const runtime = "nodejs";
 
 export async function GET(req: Request) {
   const requestId = getRequestId(req);

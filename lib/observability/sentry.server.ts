@@ -44,10 +44,8 @@ export function captureException(error: unknown, metadata?: Record<string, unkno
 
 export function addRequestIdToScope(requestId?: string, traceId?: string) {
   if (!sentryInited) return;
-  Sentry.configureScope((scope) => {
-    if (requestId) scope.setTag("request_id", requestId);
-    if (traceId) scope.setTag("trace_id", traceId);
-  });
+  if (requestId) Sentry.setTag("request_id", requestId);
+  if (traceId) Sentry.setTag("trace_id", traceId);
 }
 
 export function getSentry() {

@@ -1,8 +1,9 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import type { Adapter } from "next-auth/adapters";
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { Role } from "@prisma/client";
-import { prisma } from "./prisma";
+import { prisma } from "@/lib/server/prisma";
 
 const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
@@ -14,7 +15,7 @@ export type AuthUser = {
 };
 
 export const authConfig: NextAuthConfig = {
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma) as Adapter,
   session: {
     strategy: "jwt",
   },
@@ -27,10 +28,12 @@ export const authConfig: NextAuthConfig = {
         name: { label: "Nombre", type: "text" },
       },
       async authorize(credentials) {
-        const email = credentials?.email?.toLowerCase().trim();
+        const rawEmail = credentials?.email;
+        const email = typeof rawEmail === "string" ? rawEmail.toLowerCase().trim() : "";
         if (!email) return null;
 
-        const name = credentials?.name?.trim() || null;
+        const rawName = credentials?.name;
+        const name = typeof rawName === "string" ? rawName.trim() || null : null;
 
         let user = await prisma.user.findUnique({ where: { email } });
         if (!user) {

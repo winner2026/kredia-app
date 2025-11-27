@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/server/prisma";
 import { ensureRateLimit } from "@/lib/security/rateLimit";
 import { logger } from "@/lib/logging/logger";
 import { CardCreateSchema } from "@/lib/validators/card";
@@ -8,6 +8,8 @@ import { withTrace } from "@/lib/observability/trace";
 import { getRequestId } from "@/lib/observability/request";
 import { invalidateCard } from "@/lib/cache/invalidation";
 import { profileApi } from "@/lib/perf/apiProfiler";
+
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const requestId = getRequestId(req);

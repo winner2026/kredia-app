@@ -10,7 +10,7 @@ function formatMoney(value?: number) {
   return `$${Math.round(value ?? 0).toLocaleString("es-AR")}`;
 }
 
-function formatDateLabel(iso?: string) {
+function formatDateLabel(iso?: string | null) {
   if (!iso) return "Sin dato";
   const date = new Date(iso);
   return date.toLocaleDateString("es-ES", {

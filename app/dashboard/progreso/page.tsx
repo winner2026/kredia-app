@@ -19,7 +19,7 @@ export default async function ProgresoPage() {
     ? new Date(data.freedomDate).toLocaleDateString("es-ES")
     : null;
   const utilization = data?.utilization ?? 0;
-  const risk = assessRisk(utilization);
+  const risk = utilization >= 70 ? "red" : utilization >= 30 ? "yellow" : "green";
 
   return (
     <div className="space-y-4">
