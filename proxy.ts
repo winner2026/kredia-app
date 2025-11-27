@@ -69,8 +69,7 @@ export default handler;
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
     "/api/:path*",
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/dashboard/:path*",
   ],
 };
