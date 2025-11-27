@@ -19,10 +19,7 @@ function attachPrismaTracer(client: PrismaClient) {
   if (globalForPrisma.__prismaTracerAttached) return;
 
   const middleware = (client as any).$use;
-  if (typeof middleware !== "function") {
-    logger.warn({ msg: "prisma.middleware.unsupported_client" });
-    return;
-  }
+  if (typeof middleware !== "function") return;
 
   middleware.call(client, async (params: any, next: any) => {
     const start = now();
