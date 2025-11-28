@@ -6,6 +6,7 @@ import { logger } from "@/lib/logging/logger";
 import { startTrace } from "@/lib/observability/trace";
 import { getRequestId } from "@/lib/observability/request";
 import { profileApi } from "@/lib/perf/apiProfiler";
+import { notDeleted } from "@/lib/softDelete";
 
 export const runtime = "nodejs";
 
@@ -26,7 +27,10 @@ export async function GET(req: Request) {
 
     try {
       const purchases = await prisma.purchase.findMany({
-        where: { userId: user.id },
+        where: {
+          userId: user.id,
+          ...notDeleted,  // Excluir compras eliminadas
+        },
         orderBy: { createdAt: "desc" },
       });
 

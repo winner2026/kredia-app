@@ -33,12 +33,14 @@ model CreditCard {
   closingDay      Int          // día de cierre (15, 20, etc.)
   dueDay          Int          // día de vencimiento (25, 28, etc.)
   createdAt       DateTime     @default(now())
+  deletedAt       DateTime?    // Soft delete timestamp
 
   user            User         @relation(fields: [userId], references: [id])
   purchases       Purchase[]
 
   @@index([userId])
   @@index([userId, createdAt])
+  @@index([deletedAt])
 }
 
 // 3. Compra
@@ -53,6 +55,7 @@ model Purchase {
   remaining      Int          // cuotas restantes
   purchaseDate   DateTime     @default(now())
   createdAt      DateTime     @default(now())
+  deletedAt      DateTime?    // Soft delete timestamp
 
   user           User         @relation(fields: [userId], references: [id])
   card           CreditCard   @relation(fields: [cardId], references: [id])
@@ -61,6 +64,7 @@ model Purchase {
   @@index([cardId])
   @@index([userId, purchaseDate])
   @@index([cardId, remaining])
+  @@index([deletedAt])
 }
 
 // 4. Snapshot de riesgo mensual
