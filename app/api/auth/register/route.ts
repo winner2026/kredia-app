@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { ensureRateLimit } from "@/lib/security/rateLimit";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -51,6 +52,13 @@ export async function POST(req: Request) {
     // Hash de la contraseña
     const passwordHash = await bcrypt.hash(password, 12);
 
+    // Generar token de verificación de email
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationTokenHash = crypto
+      .createHash("sha256")
+      .update(verificationToken)
+      .digest("hex");
+
     // Crear usuario
     const user = await prisma.user.create({
       data: {
@@ -58,6 +66,7 @@ export async function POST(req: Request) {
         name: name?.trim() || null,
         passwordHash,
         role: "USER",
+        verificationToken: verificationTokenHash,
       },
       select: {
         id: true,
@@ -68,6 +77,13 @@ export async function POST(req: Request) {
       },
     });
 
+    // TODO: Enviar email de verificación
+    // const verifyUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${verificationToken}`;
+    // await sendVerificationEmail(user.email, verifyUrl);
+
+    console.log(`Verification token for ${user.email}: ${verificationToken}`);
+    console.log(`Verify URL would be: /verify-email?token=${verificationToken}`);
+
     return NextResponse.json({
       success: true,
       user: {
@@ -76,7 +92,11 @@ export async function POST(req: Request) {
         name: user.name,
         role: user.role,
       },
-      message: "Usuario registrado exitosamente. Ahora puedes iniciar sesión.",
+      message: "Usuario registrado exitosamente. Revisa tu email para verificar tu cuenta.",
+      // En desarrollo, retornar el token (ELIMINAR EN PRODUCCIÓN)
+      ...(process.env.NODE_ENV === "development" && {
+        verificationToken,
+      }),
     });
   } catch (error) {
     console.error("Error en registro:", error);

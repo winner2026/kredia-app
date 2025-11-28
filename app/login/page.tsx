@@ -164,7 +164,7 @@ function LoginForm() {
             : "Crear cuenta"}
         </button>
 
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <button
             type="button"
             onClick={() => {
@@ -172,12 +172,21 @@ function LoginForm() {
               setError(null);
               setSuccess(null);
             }}
-            className="text-sm text-cyan-300 hover:text-cyan-200 transition"
+            className="text-sm text-cyan-300 hover:text-cyan-200 transition block w-full"
           >
             {isLogin
               ? "¿No tienes cuenta? Regístrate"
               : "¿Ya tienes cuenta? Inicia sesión"}
           </button>
+
+          {isLogin && (
+            <a
+              href="/forgot-password"
+              className="text-xs text-slate-400 hover:text-slate-300 transition block"
+            >
+              ¿Olvidaste tu contraseña?
+            </a>
+          )}
         </div>
       </form>
     </div>
