@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/server/prisma";
 import { ensureRateLimit } from "@/lib/security/rateLimit";
+import { assertCardOwnership } from "@/lib/security/rbac";
 import { PurchaseCreateSchema } from "@/lib/validators/purchase";
 import { logger } from "@/lib/logging/logger";
 import { invalidateCard, invalidateProjections } from "@/lib/cache/invalidation";
@@ -44,13 +45,8 @@ export async function POST(req: Request) {
       const installmentsNum = Number(installments);
       const paidInstallmentsNum = Math.max(0, Math.min(Number(paidInstallments ?? 0), installmentsNum));
 
-      const card = await prisma.creditCard.findUnique({ where: { id: cardId } });
-      if (!card || card.userId !== user.id) {
-        return NextResponse.json(
-          { success: false, error: "No se encontró la tarjeta del usuario" },
-          { status: 404 },
-        );
-      }
+      // Validar que la tarjeta existe y pertenece al usuario
+      const card = await assertCardOwnership(cardId, user.id);
 
       const amountPerMonth = installmentsNum > 0 ? Math.round(total / installmentsNum) : 0;
 

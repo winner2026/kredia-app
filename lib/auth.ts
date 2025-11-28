@@ -5,6 +5,12 @@ import Credentials from "next-auth/providers/credentials";
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/server/prisma";
 
+export const getBaseUrl = () => {
+  if (process.env.NEXTAUTH_URL) return process.env.NEXTAUTH_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "http://localhost:3000";
+};
+
 const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
 export type AuthUser = {
@@ -19,6 +25,7 @@ export const authConfig: NextAuthConfig = {
   session: {
     strategy: "jwt",
   },
+  trustHost: true,
   secret: authSecret,
   providers: [
     Credentials({
@@ -76,7 +83,28 @@ export const authConfig: NextAuthConfig = {
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
 
+/**
+ * Obtiene el usuario actual desde la sesión JWT
+ * Los datos ya están en el token, no necesita query a DB
+ * Para datos frescos desde DB, usar getCurrentUserFromDB()
+ */
 export async function getCurrentUser(): Promise<AuthUser | null> {
+  const session = await auth();
+  if (!session?.user?.id) return null;
+
+  return {
+    id: session.user.id,
+    email: session.user.email ?? null,
+    name: session.user.name ?? null,
+    role: session.user.role,
+  };
+}
+
+/**
+ * Obtiene el usuario actual con datos frescos desde la base de datos
+ * Usar solo cuando necesites datos actualizados (ej: cambio de role)
+ */
+export async function getCurrentUserFromDB(): Promise<AuthUser | null> {
   const session = await auth();
   if (!session?.user?.id) return null;
 

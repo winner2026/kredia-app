@@ -19,6 +19,8 @@ model User {
   cards       CreditCard[]
   purchases   Purchase[]
   riskHistory RiskSnapshot[]
+
+  @@index([role])
 }
 
 // 2. Tarjeta de crédito
@@ -33,6 +35,9 @@ model CreditCard {
 
   user            User         @relation(fields: [userId], references: [id])
   purchases       Purchase[]
+
+  @@index([userId])
+  @@index([userId, createdAt])
 }
 
 // 3. Compra
@@ -50,6 +55,11 @@ model Purchase {
 
   user           User         @relation(fields: [userId], references: [id])
   card           CreditCard   @relation(fields: [cardId], references: [id])
+
+  @@index([userId])
+  @@index([cardId])
+  @@index([userId, purchaseDate])
+  @@index([cardId, remaining])
 }
 
 // 4. Snapshot de riesgo mensual
@@ -62,6 +72,10 @@ model RiskSnapshot {
   createdAt      DateTime   @default(now())
 
   user           User       @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([userId, year, month])
+  @@unique([userId, year, month])
 }
 
 enum Role {
@@ -79,4 +93,9 @@ model AuditLog {
   metadata  Json
   integrityHash String
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([userId, createdAt])
 }
