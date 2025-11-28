@@ -14,6 +14,7 @@ import { z } from "zod";
 import { withTrace } from "@/lib/observability/trace";
 import { getRequestId } from "@/lib/observability/request";
 import { profileApi } from "@/lib/perf/apiProfiler";
+import { notDeleted } from "@/lib/softDelete";
 
 export const runtime = "nodejs";
 

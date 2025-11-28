@@ -6,6 +6,7 @@ import { ensureRateLimit } from "@/lib/security/rateLimit";
 import { logger } from "@/lib/logging/logger";
 import { getRequestId } from "@/lib/observability/request";
 import { profileApi } from "@/lib/perf/apiProfiler";
+import { notDeleted } from "@/lib/softDelete";
 
 export const runtime = "nodejs";
 
@@ -22,7 +23,7 @@ export async function GET(req: Request) {
 
     try {
       const card = await prisma.creditCard.findFirst({
-        where: { userId: user.id },
+        where: { userId: user.id, ...notDeleted },
       });
 
       if (!card) {
@@ -33,7 +34,7 @@ export async function GET(req: Request) {
       }
 
       const purchases = await prisma.purchase.findMany({
-        where: { userId: user.id },
+        where: { userId: user.id, ...notDeleted },
       });
 
       const projection = await proyectarMeses(

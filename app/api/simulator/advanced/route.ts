@@ -10,6 +10,7 @@ import { SimulatorAdvancedSchema } from "@/lib/validators/simulator";
 import { logger } from "@/lib/logging/logger";
 import { getRequestId } from "@/lib/observability/request";
 import { profileApi } from "@/lib/perf/apiProfiler";
+import { notDeleted } from "@/lib/softDelete";
 
 export const runtime = "nodejs";
 
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
       const { extraPayment, interestRateMonthly } = parsed.data;
 
       const purchases = await prisma.purchase.findMany({
-        where: { userId: user.id },
+        where: { userId: user.id, ...notDeleted },
       });
 
       if (purchases.length === 0) {
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
         );
       }
 
-      const card = await prisma.creditCard.findFirst({ where: { userId: user.id } });
+      const card = await prisma.creditCard.findFirst({ where: { userId: user.id, ...notDeleted } });
 
       if (!card) {
         return NextResponse.json(
