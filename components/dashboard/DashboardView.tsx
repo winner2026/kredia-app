@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import CreditLinearGauge from "./CreditLinearGauge";
 import {
   construirSchedule,
@@ -92,6 +93,7 @@ const clampDayInput = (value: string) => {
 };
 
 export default function DashboardView({ initialCard = null, initialPurchases = [] }: DashboardProps) {
+  const router = useRouter();
   const todayIso = getTodayLocalIso();
 
   const initialForm: FormData = {
@@ -176,6 +178,10 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
 
         if (!createCard.ok) {
           const err = await createCard.json().catch(() => null);
+          if (createCard.status === 401) {
+            router.push("/login");
+            return;
+          }
           setError(err?.error ?? "No se pudo crear la tarjeta.");
           setSubmitting(false);
           return;
@@ -209,6 +215,10 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
 
       if (!createPurchase.ok) {
         const err = await createPurchase.json().catch(() => null);
+        if (createPurchase.status === 401) {
+          router.push("/login");
+          return;
+        }
         setError(err?.error ?? "No se pudo registrar la compra.");
         setSubmitting(false);
         return;
