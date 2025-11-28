@@ -7,40 +7,109 @@ import { useSearchParams } from "next/navigation";
 function LoginForm() {
   const params = useSearchParams();
   const from = params.get("from") || "/dashboard";
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
+
     const res = await signIn("credentials", {
       redirect: false,
       email,
-      name,
+      password,
       callbackUrl: from,
     });
+
     setLoading(false);
+
     if (res?.error) {
-      setError(res.error);
+      setError("Email o contraseña incorrectos");
       return;
     }
+
     window.location.href = res?.url ?? from;
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, name: name || undefined }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.error || "Error al registrar usuario");
+        setLoading(false);
+        return;
+      }
+
+      setSuccess(data.message || "Usuario registrado exitosamente");
+      setLoading(false);
+
+      // Esperar 1 segundo y hacer login automático
+      setTimeout(async () => {
+        const res = await signIn("credentials", {
+          redirect: false,
+          email,
+          password,
+          callbackUrl: from,
+        });
+
+        if (res?.url) {
+          window.location.href = res.url;
+        }
+      }, 1000);
+    } catch (err) {
+      setError("Error de conexión. Intenta nuevamente.");
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-50 px-4">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={isLogin ? handleLogin : handleRegister}
         className="w-full max-w-md space-y-4 rounded-xl border border-white/10 bg-white/5 p-6 shadow-lg"
       >
         <div>
-          <h1 className="text-2xl font-semibold">Iniciar sesión</h1>
-          <p className="text-sm text-slate-300">Usa tu email para crear o acceder a tu cuenta.</p>
+          <h1 className="text-2xl font-semibold">
+            {isLogin ? "Iniciar sesión" : "Crear cuenta"}
+          </h1>
+          <p className="text-sm text-slate-300">
+            {isLogin
+              ? "Ingresa con tu email y contraseña"
+              : "Registra una nueva cuenta"}
+          </p>
         </div>
-        {error && <p className="text-sm text-rose-300">{error}</p>}
+
+        {error && (
+          <div className="rounded-md bg-rose-500/10 border border-rose-500/20 px-4 py-3">
+            <p className="text-sm text-rose-300">{error}</p>
+          </div>
+        )}
+
+        {success && (
+          <div className="rounded-md bg-emerald-500/10 border border-emerald-500/20 px-4 py-3">
+            <p className="text-sm text-emerald-300">{success}</p>
+          </div>
+        )}
+
         <div className="space-y-2">
           <label className="text-sm text-slate-300">Email</label>
           <input
@@ -51,22 +120,65 @@ function LoginForm() {
             className="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-50 focus:border-cyan-300/60 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
           />
         </div>
+
         <div className="space-y-2">
-          <label className="text-sm text-slate-300">Nombre (opcional)</label>
+          <label className="text-sm text-slate-300">Contraseña</label>
           <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
             className="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-50 focus:border-cyan-300/60 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
           />
+          {!isLogin && (
+            <p className="text-xs text-slate-400">Mínimo 8 caracteres</p>
+          )}
         </div>
+
+        {!isLogin && (
+          <div className="space-y-2">
+            <label htmlFor="name" className="text-sm text-slate-300">Nombre (opcional)</label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Tu nombre completo"
+              className="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-50 focus:border-cyan-300/60 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
+            />
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={loading}
           className="w-full rounded-md bg-gradient-to-r from-cyan-400 via-[#F8B738] to-[#E13787] px-4 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:brightness-110 disabled:opacity-70"
         >
-          {loading ? "Ingresando..." : "Entrar"}
+          {loading
+            ? isLogin
+              ? "Ingresando..."
+              : "Creando cuenta..."
+            : isLogin
+            ? "Iniciar sesión"
+            : "Crear cuenta"}
         </button>
+
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setError(null);
+              setSuccess(null);
+            }}
+            className="text-sm text-cyan-300 hover:text-cyan-200 transition"
+          >
+            {isLogin
+              ? "¿No tienes cuenta? Regístrate"
+              : "¿Ya tienes cuenta? Inicia sesión"}
+          </button>
+        </div>
       </form>
     </div>
   );

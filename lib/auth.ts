@@ -4,6 +4,7 @@ import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/server/prisma";
+import bcrypt from "bcryptjs";
 
 export const getBaseUrl = () => {
   if (process.env.NEXTAUTH_URL) return process.env.NEXTAUTH_URL;
@@ -29,24 +30,39 @@ export const authConfig: NextAuthConfig = {
   secret: authSecret,
   providers: [
     Credentials({
-      name: "Email",
+      name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        name: { label: "Nombre", type: "text" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         const rawEmail = credentials?.email;
         const email = typeof rawEmail === "string" ? rawEmail.toLowerCase().trim() : "";
-        if (!email) return null;
+        const password = credentials?.password as string | undefined;
 
-        const rawName = credentials?.name;
-        const name = typeof rawName === "string" ? rawName.trim() || null : null;
+        if (!email || !password) {
+          return null;
+        }
 
-        let user = await prisma.user.findUnique({ where: { email } });
+        // Buscar usuario por email
+        const user = await prisma.user.findUnique({
+          where: { email },
+          select: { id: true, email: true, name: true, role: true, passwordHash: true }
+        });
+
         if (!user) {
-          user = await prisma.user.create({
-            data: { email, name, role: Role.USER },
-          });
+          return null;
+        }
+
+        // Si no tiene password hash (usuarios legacy), rechazar login
+        if (!user.passwordHash) {
+          return null;
+        }
+
+        // Verificar contraseña
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isValid) {
+          return null;
         }
 
         return {
