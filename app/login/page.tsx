@@ -59,22 +59,27 @@ function LoginForm() {
         return;
       }
 
-      setSuccess(data.message || "Usuario registrado exitosamente");
+      // Mostrar mensaje de éxito con el token si está en desarrollo
+      const successMessage = data.verificationToken
+        ? `${data.message}\n\nEn desarrollo: Haz clic en el enlace que aparece en la consola del servidor o usa este token: ${data.verificationToken.substring(0, 10)}...`
+        : data.message;
+
+      setSuccess(successMessage);
       setLoading(false);
 
-      // Esperar 1 segundo y hacer login automático
-      setTimeout(async () => {
-        const res = await signIn("credentials", {
-          redirect: false,
-          email,
-          password,
-          callbackUrl: from,
-        });
-
-        if (res?.url) {
-          window.location.href = res.url;
-        }
-      }, 1000);
+      // Si hay token de verificación en desarrollo, redirigir automáticamente
+      if (data.verificationToken) {
+        setTimeout(() => {
+          window.location.href = `/verify-email?token=${data.verificationToken}`;
+        }, 3000);
+      } else {
+        // En producción, cambiar a modo login después de 5 segundos
+        setTimeout(() => {
+          setIsLogin(true);
+          setSuccess(null);
+          setError(null);
+        }, 5000);
+      }
     } catch (err) {
       setError("Error de conexión. Intenta nuevamente.");
       setLoading(false);

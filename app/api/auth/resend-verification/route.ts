@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { ensureRateLimit } from "@/lib/security/rateLimit";
 import { getCurrentUser } from "@/lib/auth";
+import { sendVerificationEmail } from "@/lib/email/send";
 import crypto from "crypto";
 
 export const runtime = "nodejs";
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
     // Verificar si ya está verificado
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { emailVerified: true },
+      select: { emailVerified: true, name: true, email: true },
     });
 
     if (dbUser?.emailVerified) {
@@ -50,13 +51,30 @@ export async function POST(req: Request) {
       },
     });
 
-    // TODO: Enviar email de verificación
-    // const verifyUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${verificationToken}`;
-    // await sendVerificationEmail(user.email, verifyUrl);
+    const baseUrl =
+      process.env.NEXTAUTH_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
-    console.log(
-      `Verification token for ${user.email}: ${verificationToken}`
+    const verifyUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+    const emailSent = await sendVerificationEmail(
+      dbUser?.email ?? user.email!,
+      verifyUrl,
+      dbUser?.name ?? undefined
     );
+
+    if (!emailSent) {
+      // En desarrollo, permitimos continuar aunque falle el envío de email (simulado)
+      if (process.env.NODE_ENV === "development") {
+        console.warn("⚠️ Email de verificación no enviado (Development Mode). Continuando...");
+      } else {
+        return NextResponse.json(
+          { success: false, error: "No se pudo enviar el email de verificacion. Revisa RESEND_API_KEY y EMAIL_FROM." },
+          { status: 500 }
+        );
+      }
+    }
+
+    console.log(`Verification token for ${user.email}: ${verificationToken}`);
     console.log(`Verify URL would be: /verify-email?token=${verificationToken}`);
 
     return NextResponse.json({

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
+import { sendWelcomeEmail } from "@/lib/email/send";
 import crypto from "crypto";
 import { z } from "zod";
 
@@ -52,6 +53,14 @@ export async function POST(req: Request) {
         verificationToken: null,
       },
     });
+
+    // Enviar email de bienvenida (opcional, no bloquear si falla)
+    try {
+      await sendWelcomeEmail(user.email, user.name ?? undefined);
+    } catch (emailError) {
+      console.warn("Failed to send welcome email:", emailError);
+      // No fallar la verificación si el email de bienvenida falla
+    }
 
     return NextResponse.json({
       success: true,

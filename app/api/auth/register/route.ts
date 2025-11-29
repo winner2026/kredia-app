@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { ensureRateLimit } from "@/lib/security/rateLimit";
+import { sendVerificationEmail } from "@/lib/email/send";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { z } from "zod";
@@ -77,9 +78,25 @@ export async function POST(req: Request) {
       },
     });
 
-    // TODO: Enviar email de verificación
-    // const verifyUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${verificationToken}`;
-    // await sendVerificationEmail(user.email, verifyUrl);
+    // Construir URL de verificación
+    const baseUrl =
+      process.env.NEXTAUTH_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+    const verifyUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+    const emailSent = await sendVerificationEmail(user.email, verifyUrl, user.name ?? undefined);
+
+    if (!emailSent) {
+      // En desarrollo, permitimos continuar aunque falle el envío de email (simulado)
+      if (process.env.NODE_ENV === "development") {
+        console.warn("⚠️ Email de verificación no enviado (Development Mode). Continuando registro...");
+      } else {
+        return NextResponse.json(
+          { success: false, error: "No se pudo enviar el email de verificacion. Revisa RESEND_API_KEY y EMAIL_FROM." },
+          { status: 500 }
+        );
+      }
+    }
 
     console.log(`Verification token for ${user.email}: ${verificationToken}`);
     console.log(`Verify URL would be: /verify-email?token=${verificationToken}`);

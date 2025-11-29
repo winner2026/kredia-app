@@ -316,7 +316,7 @@ Dashboard → Compras
 
 ## 📝 TODOs Pendientes
 
-- [ ] Integrar servicio de email (SendGrid/Resend)
+- [x] Integrar servicio de email (Resend)
 - [ ] Dashboard de admin
 - [ ] Exportación de datos (CSV/PDF)
 - [ ] Notificaciones push

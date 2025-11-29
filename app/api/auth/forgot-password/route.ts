@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/server/prisma";
 import { ensureRateLimit } from "@/lib/security/rateLimit";
+import { sendPasswordResetEmail } from "@/lib/email/send";
 import crypto from "crypto";
 import { z } from "zod";
 
@@ -67,12 +68,27 @@ export async function POST(req: Request) {
       },
     });
 
-    // TODO: Enviar email con el enlace de reset
-    // const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${resetToken}`;
-    // await sendPasswordResetEmail(user.email, resetUrl);
+    const baseUrl =
+      process.env.NEXTAUTH_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+
+    const emailSent = await sendPasswordResetEmail(user.email, resetUrl, user.name ?? undefined);
+
+    if (!emailSent) {
+      // En desarrollo, permitimos continuar aunque falle el envío de email
+      if (process.env.NODE_ENV === "development") {
+        console.warn("⚠️ Email de reset no enviado (Development Mode). Continuando...");
+      } else {
+        return NextResponse.json(
+          { success: false, error: "No se pudo enviar el email de recuperacion. Revisa RESEND_API_KEY y EMAIL_FROM." },
+          { status: 500 }
+        );
+      }
+    }
 
     console.log(`Password reset token for ${user.email}: ${resetToken}`);
-    console.log(`Reset URL would be: /reset-password?token=${resetToken}`);
+    console.log(`Reset URL: ${resetUrl}`);
 
     return NextResponse.json({
       success: true,
