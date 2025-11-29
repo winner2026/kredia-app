@@ -131,29 +131,37 @@ function ResetPasswordForm() {
         )}
 
         <div className="space-y-2">
-          <label className="text-sm text-slate-300">Nueva contraseña</label>
+          <label htmlFor="new-password" className="text-sm text-slate-300">Nueva contraseña</label>
           <input
+            id="new-password"
+            name="new-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={8}
-            className="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-50 focus:border-cyan-300/60 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
+            autoComplete="new-password"
+            disabled={loading}
+            className="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-50 focus:border-cyan-300/60 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:opacity-50"
           />
           <p className="text-xs text-slate-400">Mínimo 8 caracteres</p>
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm text-slate-300">
+          <label htmlFor="confirm-password" className="text-sm text-slate-300">
             Confirmar contraseña
           </label>
           <input
+            id="confirm-password"
+            name="confirm-password"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
             minLength={8}
-            className="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-50 focus:border-cyan-300/60 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
+            autoComplete="new-password"
+            disabled={loading}
+            className="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-50 focus:border-cyan-300/60 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:opacity-50"
           />
         </div>
 

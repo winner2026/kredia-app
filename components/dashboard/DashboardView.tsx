@@ -575,19 +575,25 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
             {error && <p className="text-sm text-rose-300">{error}</p>}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm text-slate-300">Nombre de la tarjeta</label>
+                <label className="text-sm text-slate-300" htmlFor="nombre-tarjeta">
+                  Nombre de la tarjeta
+                </label>
                 <input
+                  id="nombre-tarjeta"
                   className={inputClass}
                   type="text"
                   value={form.nombreTarjeta}
                   onChange={(e) => handleChange("nombreTarjeta", e.target.value)}
-                  placeholder="Ej. Visa Crédito"
+                  placeholder="Ej. Visa Credito"
                   disabled={cardLocked}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-slate-300">Límite de la tarjeta</label>
+                <label className="text-sm text-slate-300" htmlFor="limite-tarjeta">
+                  Limite de la tarjeta
+                </label>
                 <input
+                  id="limite-tarjeta"
                   className={inputClass}
                   type="text"
                   inputMode="numeric"
@@ -599,8 +605,11 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-slate-300">Día de cierre (1-31)</label>
+                <label className="text-sm text-slate-300" htmlFor="dia-cierre">
+                  Dia de cierre (1-31)
+                </label>
                 <input
+                  id="dia-cierre"
                   className={inputClass}
                   type="text"
                   inputMode="numeric"
@@ -612,8 +621,11 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-slate-300">Día de vencimiento (1-31)</label>
+                <label className="text-sm text-slate-300" htmlFor="dia-vencimiento">
+                  Dia de vencimiento (1-31)
+                </label>
                 <input
+                  id="dia-vencimiento"
                   className={inputClass}
                   type="text"
                   inputMode="numeric"
@@ -625,18 +637,24 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-slate-300">Nombre de la compra</label>
+                <label className="text-sm text-slate-300" htmlFor="descripcion-compra">
+                  Nombre de la compra
+                </label>
                 <input
+                  id="descripcion-compra"
                   className={inputClass}
                   type="text"
                   value={form.descripcion}
                   onChange={(e) => handleChange("descripcion", e.target.value)}
-                  placeholder="Ej. Suscripción streaming"
+                  placeholder="Ej. Suscripcion streaming"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-slate-300">Cantidad de cuotas</label>
+                <label className="text-sm text-slate-300" htmlFor="cantidad-cuotas">
+                  Cantidad de cuotas
+                </label>
                 <input
+                  id="cantidad-cuotas"
                   className={inputClass}
                   type="text"
                   inputMode="numeric"
@@ -653,8 +671,11 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-slate-300">Monto de cada cuota</label>
+                <label className="text-sm text-slate-300" htmlFor="monto-cuota">
+                  Monto de cada cuota
+                </label>
                 <input
+                  id="monto-cuota"
                   className={inputClass}
                   type="text"
                   inputMode="numeric"
@@ -665,8 +686,11 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-slate-300">Cuotas pagadas</label>
+                <label className="text-sm text-slate-300" htmlFor="cuotas-pagadas">
+                  Cuotas pagadas
+                </label>
                 <input
+                  id="cuotas-pagadas"
                   className={inputClass}
                   type="text"
                   inputMode="numeric"
@@ -700,6 +724,7 @@ export default function DashboardView({ initialCard = null, initialPurchases = [
                   aria-label="Fecha de compra"
                 />
               </div>
+            </div>
             </div>
 
             <button
