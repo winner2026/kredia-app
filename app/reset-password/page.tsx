@@ -39,20 +39,33 @@ function ResetPasswordForm() {
     setError(null);
     setLoading(true);
 
+    console.log("🔐 Reset password submitted");
+
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden");
       setLoading(false);
       return;
     }
 
+    if (!token) {
+      setError("Token no encontrado");
+      setLoading(false);
+      return;
+    }
+
     try {
+      console.log("📡 Calling /api/auth/reset-password");
+
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),
       });
 
+      console.log("📥 Response:", response.status);
+
       const data = await response.json();
+      console.log("📦 Data:", data);
 
       if (!response.ok || !data.success) {
         setError(data.error || "Error al actualizar contraseña");
@@ -60,13 +73,17 @@ function ResetPasswordForm() {
         return;
       }
 
+      console.log("✅ Password reset successful!");
       setSuccess(true);
+      setLoading(false);
 
-      // Redirigir al login después de 2 segundos
+      // Redirigir al login después de 3 segundos
       setTimeout(() => {
+        console.log("🔄 Redirecting to login...");
         router.push("/login");
-      }, 2000);
+      }, 3000);
     } catch (err) {
+      console.error("❌ Error:", err);
       setError("Error de conexión. Intenta nuevamente.");
       setLoading(false);
     }
@@ -79,10 +96,16 @@ function ResetPasswordForm() {
           <h1 className="text-2xl font-semibold text-emerald-300 mb-2">
             ¡Contraseña actualizada!
           </h1>
-          <p className="text-sm text-emerald-200">
+          <p className="text-sm text-emerald-200 mb-4">
             Tu contraseña ha sido cambiada exitosamente. Redirigiendo al inicio
-            de sesión...
+            de sesión en 3 segundos...
           </p>
+          <Link
+            href="/login"
+            className="inline-block text-sm text-emerald-300 hover:text-emerald-200 underline"
+          >
+            O haz clic aquí para ir ahora
+          </Link>
         </div>
       </div>
     );
