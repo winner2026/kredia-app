@@ -1,5 +1,3 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import type { Adapter } from "next-auth/adapters";
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { Role } from "@prisma/client";
@@ -22,7 +20,6 @@ export type AuthUser = {
 };
 
 export const authConfig: NextAuthConfig = {
-  adapter: PrismaAdapter(prisma) as Adapter,
   session: {
     strategy: "jwt",
   },
@@ -47,7 +44,14 @@ export const authConfig: NextAuthConfig = {
         // Buscar usuario por email
         const user = await prisma.user.findUnique({
           where: { email },
-          select: { id: true, email: true, name: true, role: true, passwordHash: true }
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            passwordHash: true,
+            emailVerified: true,
+          },
         });
 
         if (!user) {
@@ -62,6 +66,11 @@ export const authConfig: NextAuthConfig = {
         // Verificar contraseña
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) {
+          return null;
+        }
+
+        // Bloquear usuarios sin email verificado
+        if (!user.emailVerified) {
           return null;
         }
 
