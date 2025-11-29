@@ -78,10 +78,8 @@ export default function RegisterPage() {
       }
       reset();
 
-      // Redirigir tras un breve delay
-      setTimeout(() => {
-        router.push("/login");
-      }, 1500);
+      // NO redirigir automáticamente - dejar que el usuario vea el mensaje
+      // El usuario puede hacer clic en "Ya tienes cuenta? Inicia sesión"
     } catch (err) {
       setApiError("Error de conexion. Intenta nuevamente.");
     }

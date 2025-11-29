@@ -1,141 +1,84 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { signIn } from "@/lib/auth";
 
-const loginSchema = z.object({
-  email: z.string().email("Ingresa un email válido"),
-  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
-
-function LoginForm() {
+export default function LoginPage() {
   const router = useRouter();
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
-  });
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-  const onSubmit = async (values: LoginFormData) => {
-    setApiError(null);
+    const data = new FormData(event.currentTarget);
+    const email = data.get("email")?.toString();
+    const password = data.get("password")?.toString();
 
-    const signInResult = await signIn("credentials", {
+    if (!email || !password) return;
+
+    setIsSubmitting(true);
+    setError("");
+
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirectTo: "/dashboard",
       redirect: false,
-      email: values.email,
-      password: values.password,
-      callbackUrl: "/dashboard",
     });
 
-    if (signInResult?.error) {
-      setApiError("Email o contraseña incorrectos");
+    setIsSubmitting(false);
+
+    if (result?.error) {
+      setError("Credenciales incorrectas o email no verificado.");
       return;
     }
 
-    router.push("/dashboard");
-  };
+    if (result?.redirect) {
+      router.push(result.redirect);
+    }
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-50 px-4">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-md space-y-4 rounded-xl border border-white/10 bg-white/5 p-6 shadow-lg"
-      >
-        <div>
-          <h1 className="text-2xl font-semibold">Iniciar sesión</h1>
-          <p className="text-sm text-slate-300">
-            Ingresa con tu email y contraseña
-          </p>
-        </div>
-
-        {apiError && (
-          <div className="rounded-md bg-rose-500/10 border border-rose-500/20 px-4 py-3">
-            <p className="text-sm text-rose-300">{apiError}</p>
-          </div>
-        )}
-
-        <div className="space-y-2">
-          <label className="text-sm text-slate-300" htmlFor="login-email">
-            Email
-          </label>
-          <input
-            id="login-email"
-            type="email"
-            autoComplete="email"
-            disabled={isSubmitting}
-            {...register("email")}
-            className="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-50 focus:border-cyan-300/60 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:opacity-60"
-          />
-          {errors.email && (
-            <p className="text-xs text-rose-300">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm text-slate-300" htmlFor="login-password">
-            Contraseña
-          </label>
-          <input
-            id="login-password"
-            type="password"
-            autoComplete="current-password"
-            disabled={isSubmitting}
-            {...register("password")}
-            className="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-50 focus:border-cyan-300/60 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 disabled:opacity-60"
-          />
-          {errors.password && (
-            <p className="text-xs text-rose-300">{errors.password.message}</p>
-          )}
-        </div>
-
-        <button
-          type="submit"
+    <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+      <div>
+        <label htmlFor="email" className="text-sm text-slate-300">
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          required
           disabled={isSubmitting}
-          aria-label="Entrar"
-          className="w-full rounded-md bg-linear-to-r from-cyan-400 via-[#F8B738] to-[#E13787] px-4 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:brightness-110 disabled:opacity-70"
-        >
-          {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
-        </button>
+          className="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-50"
+        />
+      </div>
 
-        <div className="text-center space-y-2">
-          <a
-            href="/forgot-password"
-            className="text-xs text-slate-400 hover:text-slate-300 transition block"
-          >
-            ¿Olvidaste tu contraseña?
-          </a>
-          <a
-            href="/register"
-            className="text-sm text-cyan-300 hover:text-cyan-200 transition block"
-          >
-            ¿No tienes cuenta? Regístrate
-          </a>
-        </div>
-      </form>
-    </div>
-  );
-}
+      <div>
+        <label htmlFor="password" className="text-sm text-slate-300">
+          Contraseña
+        </label>
+        <input
+          id="password"
+          type="password"
+          name="password"
+          required
+          disabled={isSubmitting}
+          className="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-50"
+        />
+      </div>
 
-export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center text-slate-200">
-          Cargando...
-        </div>
-      }
-    >
-      <LoginForm />
-    </Suspense>
+      {error && <p className="text-sm text-rose-300">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full rounded-md bg-cyan-500 py-3 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-60"
+      >
+        {isSubmitting ? "Ingresando..." : "Ingresar"}
+      </button>
+    </form>
   );
 }

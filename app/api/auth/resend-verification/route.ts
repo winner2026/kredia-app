@@ -17,19 +17,31 @@ export async function POST(req: Request) {
     );
   }
 
+  const body = await req.json().catch(() => ({}));
+  const emailFromBody = body.email;
+
   const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+
+  // Si no está autenticado, debe proporcionar email
+  if (!user && !emailFromBody) {
+    return NextResponse.json({ error: "Email requerido" }, { status: 400 });
   }
 
   try {
-    // Verificar si ya está verificado
+    // Buscar usuario por ID (si autenticado) o por email (si no autenticado)
     const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { emailVerified: true, name: true, email: true },
+      where: user ? { id: user.id } : { email: emailFromBody.toLowerCase().trim() },
+      select: { id: true, emailVerified: true, name: true, email: true },
     });
 
-    if (dbUser?.emailVerified) {
+    if (!dbUser) {
+      return NextResponse.json(
+        { error: "Usuario no encontrado" },
+        { status: 404 }
+      );
+    }
+
+    if (dbUser.emailVerified) {
       return NextResponse.json(
         { error: "El email ya está verificado" },
         { status: 400 }
@@ -45,7 +57,7 @@ export async function POST(req: Request) {
 
     // Guardar token
     await prisma.user.update({
-      where: { id: user.id },
+      where: { id: dbUser.id },
       data: {
         verificationToken: verificationTokenHash,
       },
@@ -57,9 +69,9 @@ export async function POST(req: Request) {
 
     const verifyUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
     const emailSent = await sendVerificationEmail(
-      dbUser?.email ?? user.email!,
+      dbUser.email,
       verifyUrl,
-      dbUser?.name ?? undefined
+      dbUser.name ?? undefined
     );
 
     if (!emailSent) {
@@ -74,7 +86,7 @@ export async function POST(req: Request) {
       }
     }
 
-    console.log(`Verification token for ${user.email}: ${verificationToken}`);
+    console.log(`Verification token for ${dbUser.email}: ${verificationToken}`);
     console.log(`Verify URL would be: /verify-email?token=${verificationToken}`);
 
     return NextResponse.json({

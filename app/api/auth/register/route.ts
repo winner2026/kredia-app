@@ -85,6 +85,7 @@ export async function POST(req: Request) {
 
     const verifyUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
     const emailSent = await sendVerificationEmail(user.email, verifyUrl, user.name ?? undefined);
+    console.log("EMAIL VERIFICATION RESULT:", emailSent);
 
     if (!emailSent) {
       // En desarrollo, permitimos continuar aunque falle el envío de email (simulado)

@@ -37,6 +37,12 @@ export const authConfig: NextAuthConfig = {
         const email = typeof rawEmail === "string" ? rawEmail.toLowerCase().trim() : "";
         const password = credentials?.password as string | undefined;
 
+        console.log("LOGIN ATTEMPT:", {
+          rawEmail: credentials?.email,
+          normalizedEmail: email,
+          enteredPassword: password,
+        });
+
         if (!email || !password) {
           return null;
         }
@@ -69,10 +75,13 @@ export const authConfig: NextAuthConfig = {
           return null;
         }
 
-        // Bloquear usuarios sin email verificado
+        // Verificar que el email esté verificado
         if (!user.emailVerified) {
+          console.log("LOGIN DENIED: Email not verified for", email);
           return null;
         }
+
+        console.log("AUTHORIZED USER:", user);
 
         return {
           id: user.id,
