@@ -1,42 +1,56 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-export default function proxy(req: NextRequest) {
-  const url = req.nextUrl;
+export function proxy(request: NextRequest) {
+  const url = request.nextUrl;
   const pathname = url.pathname;
 
+  // Auth routes (permitir que NextAuth funcione)
   const authRoutes = [
-    '/api/auth',
-    '/api/auth/signin',
-    '/api/auth/callback',
-    '/api/auth/providers',
-    '/api/auth/csrf',
+    "/api/auth",
+    "/api/auth/signin",
+    "/api/auth/callback",
+    "/api/auth/providers",
+    "/api/auth/csrf",
   ];
 
   if (authRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
-  // 2) Permitir cualquier otra API
-  if (pathname.startsWith('/api')) {
+  // Permitir el resto de API routes
+  if (pathname.startsWith("/api")) {
     return NextResponse.next();
   }
 
-  // 3) Rutas protegidas
-  const protectedRoutes = ['/dashboard', '/onboarding'];
-  const isProtected = protectedRoutes.some(route =>
+  // Rutas protegidas
+  const protectedRoutes = ["/dashboard", "/onboarding"];
+  const isProtected = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
 
+  // Leer cookies de sesión de Auth.js
   const sessionCookie =
-    req.cookies.get('authjs.session-token') ??
-    req.cookies.get('__Secure-authjs.session-token') ??
-    req.cookies.get('next-auth.session-token') ??
-    req.cookies.get('session');
+    request.cookies.get("authjs.session-token") ??
+    request.cookies.get("__Secure-authjs.session-token") ??
+    request.cookies.get("next-auth.session-token") ??
+    request.cookies.get("session");
 
   if (isProtected && !sessionCookie) {
-    url.pathname = '/login';
+    url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
 }
+
+export const config = {
+  matcher: [
+    "/dashboard/:path*",
+    "/onboarding/:path*",
+    "/api/:path*",
+    "/login",
+    "/register",
+    "/",
+  ],
+};
