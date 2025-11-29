@@ -72,7 +72,6 @@ kredia-app/
 ## 🔐 Características de Seguridad
 
 ### Autenticación
-- ✅ **Registro seguro** con validación de email
 - ✅ **Login con bcrypt** (12 rounds de hashing)
 - ✅ **Password reset** con tokens de 1 hora
 - ✅ **Email verification** con tokens seguros
@@ -81,7 +80,6 @@ kredia-app/
 ### Protección
 - ✅ **Rate limiting distribuido** (Redis)
   - 30 req/min en endpoints de lectura
-  - 5 req/hora en registro
   - 3 req/hora en password reset
 - ✅ **RBAC** con ownership validation
 - ✅ **Soft deletes** para auditoría
@@ -143,12 +141,10 @@ model Purchase {
 
 ### Autenticación
 ```typescript
-POST /api/auth/register          // Registro de usuario
 POST /api/auth/[...nextauth]     // NextAuth endpoints
 POST /api/auth/forgot-password   // Solicitar reset
 POST /api/auth/reset-password    // Actualizar contraseña
 POST /api/auth/verify-email      // Verificar email
-POST /api/auth/resend-verification // Reenviar verificación
 ```
 
 ### Tarjetas
@@ -251,7 +247,6 @@ npm run test:unit
 ### 1. Registro y Verificación
 ```
 Usuario → /login (modo registro)
-  → POST /api/auth/register
   → Email con verification token (dev: console)
   → /verify-email?token=xxx
   → POST /api/auth/verify-email

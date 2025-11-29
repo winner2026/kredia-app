@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm run dev:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
