@@ -18,14 +18,8 @@ export function FinalCTA() {
               <p className="text-base text-slate-300">
                 Prueba la claridad de <span className="text-[#F8B738]">K</span><span className="text-[#27C1D0]">red</span><span className="text-[#E13787]">IA</span> antes de compartir cualquier dato.
               </p>
-              <Link
-                href="/dashboard"
-                className="inline-flex w-fit items-center gap-2 rounded-xl bg-[#1567A6] px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_50px_rgba(21,103,166,0.35)] transition-transform duration-150 hover:-translate-y-[3px] hover:bg-[#115782] active:translate-y-[1px]"
-              >
-                <span className="whitespace-nowrap">
-                  Probar <span className="text-[#F8B738]">K</span><span className="text-[#27C1D0]">red</span><span className="text-[#E13787]">IA</span> gratis
-                </span>
-                <ArrowUpRight className="h-4 w-4" aria-hidden />
+              <Link href="/dashboard" className="btn-primary">
+                Comenzar ahora
               </Link>
               <p className="text-sm text-slate-300">No pedimos datos hasta que veas valor.</p>
             </div>

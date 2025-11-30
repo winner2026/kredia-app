@@ -22,14 +22,8 @@ export function Hero() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#1567A6] px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_60px_rgba(21,103,166,0.35)] transition-transform duration-150 hover:-translate-y-[3px] active:translate-y-[1px]"
-            >
-              <span className="whitespace-nowrap">
-                Probar <span className="text-[#F8B738]">K</span><span className="text-[#27C1D0]">red</span><span className="text-[#E13787]">IA</span> gratis
-              </span>
-              <ArrowUpRight className="h-4 w-4" aria-hidden />
+            <Link href="/dashboard" className="btn-primary">
+              Ver mi realidad crediticia
             </Link>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-200">
               <ShieldCheck className="h-4 w-4 text-emerald-300" aria-hidden />
