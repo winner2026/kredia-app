@@ -23,22 +23,14 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Rutas protegidas
-  const protectedRoutes = ["/dashboard", "/onboarding"];
+  // Rutas protegidas (vacío para permitir acceso libre)
+  const protectedRoutes: string[] = [];
   const isProtected = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
 
-  // Leer cookies de sesión de Auth.js
-  const sessionCookie =
-    request.cookies.get("authjs.session-token") ??
-    request.cookies.get("__Secure-authjs.session-token") ??
-    request.cookies.get("next-auth.session-token") ??
-    request.cookies.get("session");
-
-  if (isProtected && !sessionCookie) {
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+  if (isProtected) {
+    return NextResponse.next();
   }
 
   return NextResponse.next();

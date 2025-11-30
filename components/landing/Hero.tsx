@@ -23,7 +23,7 @@ export function Hero() {
 
           <div className="flex flex-wrap items-center gap-4">
             <Link
-              href="/dashboard"
+              href="/onboarding"
               className="inline-flex items-center gap-2 rounded-xl bg-[#1567A6] px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_60px_rgba(21,103,166,0.35)] transition-transform duration-150 hover:-translate-y-[3px] active:translate-y-[1px]"
             >
               <span className="whitespace-nowrap">
