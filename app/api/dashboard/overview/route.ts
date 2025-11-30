@@ -23,7 +23,15 @@ export async function GET(req: Request) {
 
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({
+        success: true,
+        card: null,
+        purchases: [],
+        monthlyTotal: 0,
+        utilization: 0,
+        freedomDate: null,
+        projection: [],
+      });
     }
 
     try {

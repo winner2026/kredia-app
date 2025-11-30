@@ -1,10 +1,7 @@
-import { redirect } from "next/navigation";
-
 async function loadOverview() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/dashboard/overview`, {
     cache: "no-store",
   });
-  if (res.status === 401) redirect("/login");
   if (!res.ok) return null;
   return res.json();
 }

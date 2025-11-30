@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { calculateRisk } from "@/lib/domain/risk";
 
 async function loadOverview() {
@@ -8,7 +7,6 @@ async function loadOverview() {
       cache: "no-store",
     }
   );
-  if (res.status === 401) redirect("/login");
   if (!res.ok) return null;
   return res.json();
 }
