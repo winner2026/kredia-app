@@ -12,6 +12,18 @@ export default function DashboardInicio() {
     montoCuota: "",
     cantidadCuotas: "",
   });
+  const [compras, setCompras] = useState<
+    Array<{
+      tarjeta: string;
+      limite: string;
+      fechaCorte: string;
+      fechaCierre: string;
+      nombreCompra: string;
+      montoCuota: string;
+      cantidadCuotas: string;
+      total: number;
+    }>
+  >([]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -19,8 +31,22 @@ export default function DashboardInicio() {
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    console.log("DATA SUBMIT:", form);
-    // aquí luego conectas con tu API real
+    const monto = parseFloat(form.montoCuota) || 0;
+    const cuotas = parseInt(form.cantidadCuotas || "0", 10) || 0;
+    const total = monto * cuotas || 0;
+
+    const compra = { ...form, total };
+    setCompras((prev) => [...prev, compra]);
+    setForm({
+      tarjeta: "",
+      limite: "",
+      fechaCorte: "",
+      fechaCierre: "",
+      nombreCompra: "",
+      montoCuota: "",
+      cantidadCuotas: "",
+    });
+    console.log("DATA SUBMIT:", compra);
   }
 
   const monto = parseFloat(form.montoCuota) || 0;
@@ -135,6 +161,22 @@ export default function DashboardInicio() {
         <p><span className="font-semibold">Cantidad de cuotas:</span> {form.cantidadCuotas || "—"}</p>
         <p><span className="font-semibold">Total estimado:</span> ${totalCompra.toFixed(2)}</p>
       </div>
+
+      {compras.length > 0 && (
+        <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-slate-200 space-y-3">
+          <h2 className="text-lg font-semibold text-slate-50">Compras guardadas</h2>
+          <ul className="space-y-2">
+            {compras.map((c, idx) => (
+              <li key={idx} className="rounded border border-white/10 p-3">
+                <p><span className="font-semibold">Tarjeta:</span> {c.tarjeta}</p>
+                <p><span className="font-semibold">Compra:</span> {c.nombreCompra}</p>
+                <p><span className="font-semibold">Cuota:</span> {c.montoCuota} x {c.cantidadCuotas}</p>
+                <p><span className="font-semibold">Total:</span> ${c.total.toFixed(2)}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
