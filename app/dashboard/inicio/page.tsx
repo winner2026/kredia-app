@@ -20,6 +20,12 @@ export default function DashboardInicio() {
   const totalCompra = useMemo(() => (cuotas > 0 ? monto * cuotas : 0), [monto, cuotas]);
   const uso = useMemo(() => (limite > 0 ? Math.min((totalCompra / limite) * 100, 999) : 0), [limite, totalCompra]);
   const dentroLimite = limite === 0 ? true : totalCompra <= limite;
+  const fechaFinal = useMemo(() => {
+    if (!form.fechaCorte || !cuotas) return "-";
+    const base = new Date(form.fechaCorte);
+    base.setMonth(base.getMonth() + cuotas);
+    return base.toLocaleDateString();
+  }, [form.fechaCorte, cuotas]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -28,14 +34,14 @@ export default function DashboardInicio() {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     console.log("DATA SUBMIT:", form, { totalCompra });
-    // aquí luego conectas con tu API real
+    // conecta con tu API real aquí
   }
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-8">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-slate-50">Ingreso de Compras</h1>
-        <p className="text-slate-300 text-sm">Carga una compra y ve el impacto inmediato sobre tu límite.</p>
+        <p className="text-slate-300 text-sm">Carga una compra y ve el impacto inmediato sobre tu limite.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2 rounded-xl border border-white/10 bg-white/5 p-6">
@@ -52,7 +58,7 @@ export default function DashboardInicio() {
         </div>
 
         <div>
-          <label className="block text-sm mb-1 text-slate-200">Límite de Crédito</label>
+          <label className="block text-sm mb-1 text-slate-200">Limite de Credito</label>
           <input
             type="number"
             name="limite"
@@ -137,20 +143,24 @@ export default function DashboardInicio() {
         <h2 className="text-lg font-semibold text-slate-50">Resumen</h2>
         <div className="grid gap-2 md:grid-cols-2">
           <p><span className="font-semibold">Tarjeta:</span> {form.tarjeta || "—"}</p>
-          <p><span className="font-semibold">Límite:</span> {form.limite || "—"}</p>
+          <p><span className="font-semibold">Limite:</span> {form.limite || "—"}</p>
           <p><span className="font-semibold">Compra:</span> {form.nombreCompra || "—"}</p>
           <p><span className="font-semibold">Monto por cuota:</span> {form.montoCuota || "—"}</p>
           <p><span className="font-semibold">Cantidad de cuotas:</span> {form.cantidadCuotas || "—"}</p>
           <p><span className="font-semibold">Total estimado:</span> ${totalCompra.toFixed(2)}</p>
+          <div className="mt-2 text-sm md:col-span-2">
+            <strong>Finaliza:</strong>{" "}
+            {form.fechaCorte && form.cantidadCuotas ? fechaFinal : "-"}
+          </div>
         </div>
 
         <div className={`rounded-md px-3 py-2 text-sm ${dentroLimite ? "bg-emerald-500/15 text-emerald-200" : "bg-rose-500/15 text-rose-200"}`}>
-          {dentroLimite ? "Dentro del límite" : "Supera el límite"}
+          {dentroLimite ? "Dentro del limite" : "Supera el limite"}
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-300">
-            <span>Uso del límite</span>
+            <span>Uso del limite</span>
             <span>{uso.toFixed(1)}%</span>
           </div>
           <div className="h-3 w-full overflow-hidden rounded-full bg-white/10">
