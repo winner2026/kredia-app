@@ -3,6 +3,7 @@ import { prisma } from "@/lib/server/prisma";
 import { logger } from "@/lib/logging/logger";
 import { getRequestId } from "@/lib/observability/request";
 import { profileApi } from "@/lib/perf/apiProfiler";
+import bcrypt from "bcryptjs";
 
 export const runtime = "nodejs";
 
@@ -11,12 +12,22 @@ export async function POST(req: Request) {
   return profileApi("users.create", requestId, async () => {
     try {
       const body = await req.json();
-      const { email, name } = body;
+      const { email, name, password } = body;
+
+      if (!email || !password) {
+        return NextResponse.json(
+          { error: "Email and password are required" },
+          { status: 400 }
+        );
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = await prisma.user.create({
         data: {
           email,
           name,
+          password: hashedPassword,
         },
       });
 

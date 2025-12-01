@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        passwordHash,
+        password: passwordHash,
         resetToken: null,
         resetTokenExpiry: null,
       },

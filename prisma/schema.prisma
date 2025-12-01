@@ -11,36 +11,100 @@ generator client {
 
 // ---------- MODELO ----------
 model Compra {
-  id             String   @id
-  tarjeta        String
-  limite         Float
+  id      String @id
+  tarjeta String
+  limite  Float
 
-  fechaCorte     DateTime @map("fechacorte")
-  fechaCierre    DateTime @map("fechacierre")
+  fechaCorte  DateTime @map("fechacorte")
+  fechaCierre DateTime @map("fechacierre")
 
-  nombreCompra   String   @map("nombrecompra")
-  montoCuota     Float    @map("montocuota")
-  cantidadCuotas Int      @map("cantidadcuotas")
+  nombreCompra   String @map("nombrecompra")
+  montoCuota     Float  @map("montocuota")
+  cantidadCuotas Int    @map("cantidadcuotas")
 
-  createdAt      DateTime @default(now()) @map("createdat")
+  createdAt DateTime @default(now()) @map("createdat")
 
   @@map("Compra")
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  passwordHash  String
-  role          Role      @default(USER)
-  emailVerified DateTime?
-  premium       Boolean   @default(false)
-  premiumSince  DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime? @updatedAt
+  id                      String       @id @default(cuid())
+  email                   String       @unique
+  name                    String?
+  password                String
+  role                    Role         @default(USER)
+  emailVerified           DateTime?
+  resetToken              String?
+  resetTokenExpiry        DateTime?
+  verificationToken       String?
+  verificationTokenExpiry DateTime?
+  creditCards             CreditCard[]
+  auditLogs               AuditLog[]
+  purchases               Purchase[]
+  premium                 Boolean      @default(false)
+  premiumSince            DateTime?
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime?    @updatedAt
 }
 
 enum Role {
   USER
   ADMIN
+}
+
+model CreditCard {
+  id         String    @id @default(cuid())
+  userId     String
+  bank       String
+  limit      Float
+  closingDay Int
+  dueDay     Int
+  holderName String?
+  last4      String?
+  brand      String?
+  expMonth   Int?
+  expYear    Int?
+  createdAt  DateTime  @default(now())
+  deletedAt  DateTime?
+
+  user      User       @relation(fields: [userId], references: [id])
+  purchases Purchase[]
+}
+
+model Purchase {
+  id             String    @id @default(cuid())
+  userId         String
+  cardId         String
+  description    String?
+  amount         Decimal   @db.Decimal(12, 2)
+  amountTotal    Float
+  amountPerMonth Int
+  installments   Int
+  remaining      Int
+  purchaseDate   DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  user User       @relation(fields: [userId], references: [id])
+  card CreditCard @relation(fields: [cardId], references: [id])
+
+  @@index([userId])
+  @@index([cardId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  route     String?
+  ip        String?
+  requestId String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([route])
 }

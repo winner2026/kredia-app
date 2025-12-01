@@ -9,7 +9,7 @@ async function main() {
 
   const user = await prisma.user.update({
     where: { email },
-    data: { passwordHash },
+    data: { password: passwordHash },
   });
 
   console.log("Password actualizado:", user);

@@ -55,6 +55,7 @@ export async function POST(req: Request) {
           userId: user.id,
           cardId,
           description,
+          amount: total,
           amountTotal: total,
           amountPerMonth,
           installments: installmentsNum,

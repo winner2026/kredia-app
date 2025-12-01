@@ -57,7 +57,7 @@ describe('Authentication Functions', () => {
       const mockUser = {
         id: 'user-123',
         email: 'test@example.com',
-        passwordHash: 'hashedPassword',
+        password: 'hashedPassword',
       }
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any)

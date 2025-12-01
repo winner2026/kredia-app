@@ -18,7 +18,7 @@ async function verifyPassword() {
       id: true,
       email: true,
       name: true,
-      passwordHash: true,
+      password: true,
       emailVerified: true,
     },
   });
@@ -32,12 +32,12 @@ async function verifyPassword() {
   console.log("👤 Nombre:", user.name || "(sin nombre)");
   console.log("✅ Email verificado:", user.emailVerified ? "SÍ" : "NO");
 
-  if (!user.passwordHash) {
+  if (!user.password) {
     console.log("❌ El usuario no tiene contraseña configurada");
     process.exit(0);
   }
 
-  const isValid = await bcrypt.compare(password, user.passwordHash);
+  const isValid = await bcrypt.compare(password, user.password);
 
   if (isValid) {
     console.log("✅ CONTRASEÑA CORRECTA");
@@ -51,3 +51,4 @@ async function verifyPassword() {
 }
 
 verifyPassword().catch(console.error);
+

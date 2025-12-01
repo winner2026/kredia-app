@@ -55,7 +55,7 @@ export const authConfig: NextAuthConfig = {
             email: true,
             name: true,
             role: true,
-            passwordHash: true,
+            password: true,
             emailVerified: true,
           },
         });
@@ -65,12 +65,12 @@ export const authConfig: NextAuthConfig = {
         }
 
         // Si no tiene password hash (usuarios legacy), rechazar login
-        if (!user.passwordHash) {
+        if (!user.password) {
           return null;
         }
 
         // Verificar contraseña
-        const isValid = await bcrypt.compare(password, user.passwordHash);
+        const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) {
           return null;
         }
@@ -118,7 +118,7 @@ export const authConfig: NextAuthConfig = {
       session.user.id = token.id as string;
       session.user.email = token.email as string;
       session.user.name = (token.name as string | null) ?? null;
-      session.user.role = token.role as Role;
+      session.user.role = (token.role ?? "USER") as Role;
       session.user.premium = token.premium as boolean;
       session.user.premiumSince = token.premiumSince as Date | null;
       return session;
@@ -144,7 +144,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     id: session.user.id,
     email: session.user.email ?? null,
     name: session.user.name ?? null,
-    role: session.user.role,
+    role: (session.user.role ?? "USER") as Role,
   };
 }
 

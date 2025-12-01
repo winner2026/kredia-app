@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/server/prisma";
 import { logger } from "@/lib/logging/logger";
@@ -16,23 +15,7 @@ type AuditParams = {
 };
 
 export async function createAuditLog(params: AuditParams) {
-  const secret = process.env.AUDIT_LOG_SECRET;
-  if (!secret) {
-    logger.error({ msg: "audit_log.missing_secret" });
-    return;
-  }
-
   const createdAt = new Date();
-  const payload = {
-    action: params.action,
-    route: params.route,
-    metadata: params.metadata ?? {},
-    createdAt: createdAt.toISOString(),
-  };
-
-  const hmac = crypto.createHmac("sha256", secret);
-  hmac.update(JSON.stringify(payload));
-  const integrityHash = hmac.digest("hex");
 
   try {
     await prisma.auditLog.create({
@@ -43,7 +26,6 @@ export async function createAuditLog(params: AuditParams) {
         ip: params.ip ?? null,
         requestId: params.req.headers.get("x-request-id"),
         metadata: (params.metadata ?? {}) as Prisma.InputJsonValue,
-        integrityHash,
         createdAt,
       },
     });

@@ -6,6 +6,8 @@ import { Hero } from "@/components/landing/Hero";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { ProblemSection } from "@/components/landing/ProblemSection";
 import { Steps } from "@/components/landing/Steps";
+import { DemoPreview } from "@/components/landing/DemoPreview";
+import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 
 export default function HomePage() {
   return (
@@ -14,8 +16,10 @@ export default function HomePage() {
       <Hero />
       <ProblemSection />
       <FeaturesSection />
+      <DemoPreview />
       <Steps />
       <PricingSection />
+      <TestimonialsSection />
       <FinalCTA />
       <Footer />
     </div>

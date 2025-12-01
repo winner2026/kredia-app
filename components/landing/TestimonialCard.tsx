@@ -21,9 +21,7 @@ export function TestimonialCard({ name, role, quote }: TestimonialCardProps) {
           <p className="text-xs text-slate-400">{role}</p>
         </div>
       </div>
-      <p className="relative text-sm leading-6 text-slate-300">“{quote}”</p>
+      <p className="relative text-sm leading-6 text-slate-200">{quote}</p>
     </div>
   );
 }
-
-

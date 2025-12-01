@@ -31,24 +31,24 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email, password } = parsed.data;
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
-      select: { id: true, passwordHash: true },
-    });
+  const { email, password } = parsed.data;
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase().trim() },
+    select: { id: true, password: true },
+  });
 
-    if (!user?.passwordHash) {
-      return NextResponse.json(
-        { success: false, error: "Email o contrase\u00f1a incorrectos" },
-        { status: 401 },
-      );
-    }
+  if (!user?.password) {
+    return NextResponse.json(
+      { success: false, error: "Email o contrase\u00f1a incorrectos" },
+      { status: 401 },
+    );
+  }
 
-    const isValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isValid) {
-      return NextResponse.json(
-        { success: false, error: "Email o contrase\u00f1a incorrectos" },
-        { status: 401 },
+  const isValid = await bcrypt.compare(password, user.password);
+  if (!isValid) {
+    return NextResponse.json(
+      { success: false, error: "Email o contrase\u00f1a incorrectos" },
+      { status: 401 },
       );
     }
 

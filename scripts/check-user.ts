@@ -16,7 +16,7 @@ async function checkUser() {
       name: true,
       role: true,
       emailVerified: true,
-      passwordHash: true,
+      password: true,
       verificationToken: true,
       createdAt: true,
     },
@@ -34,7 +34,7 @@ async function checkUser() {
   console.log("Role:", user.role);
   console.log("Email verificado:", user.emailVerified ? "✅ SÍ" : "❌ NO");
   console.log("Fecha verificación:", user.emailVerified || "(no verificado)");
-  console.log("Tiene password:", user.passwordHash ? "✅ SÍ" : "❌ NO");
+  console.log("Tiene password:", user.password ? "✅ SÍ" : "❌ NO");
   console.log("Token verificación pendiente:", user.verificationToken ? "⚠️ SÍ" : "✅ NO");
   console.log("Creado:", user.createdAt);
   console.log("\n");
