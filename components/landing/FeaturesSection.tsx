@@ -1,76 +1,71 @@
-import Link from "next/link";
-import { ActivitySquare, Calculator, CalendarClock, Gauge, Target } from "lucide-react";
-import { FeatureCard } from "./FeatureCard";
+import { ClipboardCheck, Coins, Gauge, HeartHandshake, ShieldCheck, Target } from "lucide-react";
 
-const features = [
+const benefits = [
   {
-    title: "Calculadora automática de cuotas",
-    description: "Cada compra se convierte en un plan claro con pagos optimizados para ahorrar intereses.",
-    icon: Calculator,
+    icon: ClipboardCheck,
+    title: "Presupuesto inteligente",
+    description: "Te propone montos realistas con base en tus ingresos y gastos fijos, sin fórmulas raras.",
   },
   {
-    title: "Proyección real a 12 meses",
-    description: "Ve tu futuro financiero mes a mes sin hojas de cálculo ni suposiciones.",
-    icon: CalendarClock,
-  },
-  {
-    title: "Indicador de riesgo inteligente",
-    description: "Semáforo vivo que anticipa límites, cargos y desbalances antes de que ocurran.",
-    icon: ActivitySquare,
-  },
-  {
-    title: "Fecha exacta en que vuelves a $0",
-    description: (
-      <>
-        <span className="text-[#F8B738]">K</span><span className="text-[#27C1D0]">red</span><span className="text-[#E13787]">IA</span> te marca el día que tu tarjeta respira en cero y cómo
-        acelerarlo.
-      </>
-    ),
-    icon: Target,
-  },
-  {
-    title: (
-      <>
-        <span className="text-[#F8B738]">K</span><span className="text-[#27C1D0]">red</span><span className="text-[#E13787]">IA</span> Score — tu nivel de libertad financiera
-      </>
-    ),
-    description: "Una métrica accionable que sube cuando tomas decisiones correctas, no cuando gastas más.",
     icon: Gauge,
+    title: "Control sin esfuerzo",
+    description: "Alertas claras para no pasarte y recomendaciones para mantenerte en verde cada mes.",
+  },
+  {
+    icon: Coins,
+    title: "Ahorro sin estrés",
+    description: "Reserva automática para metas: emergencias, viajes o pagos grandes sin endeudarte.",
+  },
+  {
+    icon: Target,
+    title: "Salir del ciclo de deuda",
+    description: "Plan paso a paso para dejar de pagar mínimos y liquidar más rápido.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Seguridad y privacidad",
+    description: "Datos cifrados y alojados de forma segura. Sin ventas de información ni publicidad.",
+  },
+  {
+    icon: HeartHandshake,
+    title: "Acompañamiento humano",
+    description: "Soporte cercano para resolver dudas. Hablamos tu idioma y entendemos tu contexto.",
   },
 ];
 
 export function FeaturesSection() {
   return (
-    <section className="relative isolate">
-      <div className="mx-auto max-w-6xl px-6 py-12 md:py-16">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+    <section className="relative isolate bg-[#0d2440] text-white">
+      <div className="mx-auto max-w-6xl px-6 py-14 md:py-16">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="space-y-3">
-            <p className="text-xs uppercase tracking-[0.26em] text-indigo-200/80">
-              Cómo te libera <span className="text-[#F8B738]">K</span><span className="text-[#27C1D0]">red</span><span className="text-[#E13787]">IA</span>
-            </p>
-            <h2 className="text-3xl font-semibold text-slate-50">Acciones claras, cero confusión.</h2>
-            <p className="max-w-2xl text-base text-slate-300">
-              Reinventamos la relación con tu tarjeta: datos en tiempo real, decisiones automatizadas y control total sin fricción.
+            <p className="text-xs uppercase tracking-[0.22em] text-amber-200">Solución</p>
+            <h2 className="text-3xl font-semibold">Kredia Planner te da claridad y calma.</h2>
+            <p className="max-w-2xl text-lg text-slate-200">
+              Toda tu vida financiera en un panel simple: lo que entra, lo que sale, lo que puedes gastar y cuándo estarás libre
+              de deudas.
             </p>
           </div>
-          <Link
-            href="#demo"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1567A6] px-4 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(21,103,166,0.28)] transition hover:-translate-y-[2px] hover:bg-[#115782]"
-          >
-            Ver demo sin registrarme
-          </Link>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
-          {features.map((feature, index) => (
-            <FeatureCard key={index} {...feature} />
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {benefits.map((benefit) => (
+            <div
+              key={benefit.title}
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_15px_45px_rgba(0,0,0,0.25)] transition hover:-translate-y-1 hover:border-amber-200/50"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-200/10 via-transparent to-white/5 opacity-0 transition group-hover:opacity-100" />
+              <div className="relative space-y-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-200/15 text-amber-100">
+                  <benefit.icon className="h-5 w-5" aria-hidden />
+                </div>
+                <h3 className="text-lg font-semibold">{benefit.title}</h3>
+                <p className="text-sm text-slate-200">{benefit.description}</p>
+              </div>
+            </div>
           ))}
         </div>
       </div>
     </section>
   );
 }
-
-
-
-

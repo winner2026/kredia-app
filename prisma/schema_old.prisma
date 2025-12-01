@@ -1,0 +1,36 @@
+// ---------- DATASOURCE (Neon) ----------
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- GENERATOR ----------
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------- MODELOS ----------
+model Compra {
+  id             String   @id
+  tarjeta        String
+  limite         Float
+  fechaCorte     DateTime
+  fechaCierre    DateTime
+  nombreCompra   String
+  montoCuota     Float
+  cantidadCuotas Int
+  createdAt      DateTime @default(now())
+}
+
+
+model Compra {
+  id             String   @id
+  tarjeta        String
+  limite         Float
+  fechaCorte     DateTime
+  fechaCierre    DateTime
+  nombreCompra   String
+  montoCuota     Float
+  cantidadCuotas Int
+  createdAt      DateTime @default(now())
+}

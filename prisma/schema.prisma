@@ -1,112 +1,46 @@
-// prisma/schema.prisma
-generator client {
-  provider = "prisma-client-js"
-}
-
+// ---------- DATASOURCE ----------
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// 1. Usuario
+// ---------- GENERATOR ----------
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------- MODELO ----------
+model Compra {
+  id             String   @id
+  tarjeta        String
+  limite         Float
+
+  fechaCorte     DateTime @map("fechacorte")
+  fechaCierre    DateTime @map("fechacierre")
+
+  nombreCompra   String   @map("nombrecompra")
+  montoCuota     Float    @map("montocuota")
+  cantidadCuotas Int      @map("cantidadcuotas")
+
+  createdAt      DateTime @default(now()) @map("createdat")
+
+  @@map("Compra")
+}
+
 model User {
-  id                String       @id @default(uuid())
-  email             String       @unique
-  name              String?
-  passwordHash      String?      // Nullable para migración gradual
-  resetToken        String?      // Token hash para password reset
-  resetTokenExpiry  DateTime?    // Expiración del reset token
-  emailVerified     DateTime?    // Timestamp de verificación de email
-  verificationToken String?      // Token hash para email verification
-  createdAt         DateTime     @default(now())
-  role              Role         @default(USER)
-
-  cards       CreditCard[]
-  purchases   Purchase[]
-  riskHistory RiskSnapshot[]
-
-  @@index([role])
-  @@index([resetToken])
-  @@index([verificationToken])
-}
-
-// 2. Tarjeta de crédito
-model CreditCard {
-  id              String      @id @default(uuid())
-  userId          String
-  bank            String       // Santander, BBVA, OCA, etc.
-  limit           Int          // límite total
-  closingDay      Int          // día de cierre (15, 20, etc.)
-  dueDay          Int          // día de vencimiento (25, 28, etc.)
-  createdAt       DateTime     @default(now())
-  deletedAt       DateTime?    // Soft delete timestamp
-
-  user            User         @relation(fields: [userId], references: [id])
-  purchases       Purchase[]
-
-  @@index([userId])
-  @@index([userId, createdAt])
-  @@index([deletedAt])
-}
-
-// 3. Compra
-model Purchase {
-  id             String       @id @default(uuid())
-  userId         String
-  cardId         String
-  description    String
-  amountTotal    Int          // total de la compra (sumatoria de cuotas)
-  amountPerMonth Int          // valor mensual
-  installments   Int          // número total de cuotas
-  remaining      Int          // cuotas restantes
-  purchaseDate   DateTime     @default(now())
-  createdAt      DateTime     @default(now())
-  deletedAt      DateTime?    // Soft delete timestamp
-
-  user           User         @relation(fields: [userId], references: [id])
-  card           CreditCard   @relation(fields: [cardId], references: [id])
-
-  @@index([userId])
-  @@index([cardId])
-  @@index([userId, purchaseDate])
-  @@index([cardId, remaining])
-  @@index([deletedAt])
-}
-
-// 4. Snapshot de riesgo mensual
-model RiskSnapshot {
-  id             String     @id @default(uuid())
-  userId         String
-  month          Int
-  year           Int
-  utilization    Float      // porcentaje usado del límite
-  createdAt      DateTime   @default(now())
-
-  user           User       @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([userId, year, month])
-  @@unique([userId, year, month])
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String
+  role          Role      @default(USER)
+  emailVerified DateTime?
+  premium       Boolean   @default(false)
+  premiumSince  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime? @updatedAt
 }
 
 enum Role {
   USER
   ADMIN
-}
-
-model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  action    String
-  route     String
-  ip        String?
-  requestId String?
-  metadata  Json
-  integrityHash String
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([action])
-  @@index([createdAt])
-  @@index([userId, createdAt])
 }

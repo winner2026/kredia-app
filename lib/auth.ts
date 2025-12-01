@@ -10,7 +10,7 @@ export const getBaseUrl = () => {
   return "http://localhost:3000";
 };
 
-const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+const authSecret = process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET;
 
 export type AuthUser = {
   id: string;
@@ -100,6 +100,18 @@ export const authConfig: NextAuthConfig = {
         token.name = user.name ?? null;
         token.role = (user as { role?: Role }).role ?? Role.USER;
       }
+
+      // Cargar flags de premium desde DB
+      const dbUser = await prisma.user.findUnique({
+        where: { id: token.id as string },
+        select: { premium: true, premiumSince: true },
+      });
+
+      if (dbUser) {
+        token.premium = dbUser.premium;
+        token.premiumSince = dbUser.premiumSince;
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -107,6 +119,8 @@ export const authConfig: NextAuthConfig = {
       session.user.email = token.email as string;
       session.user.name = (token.name as string | null) ?? null;
       session.user.role = token.role as Role;
+      session.user.premium = token.premium as boolean;
+      session.user.premiumSince = token.premiumSince as Date | null;
       return session;
     },
   },
